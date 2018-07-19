@@ -17,7 +17,6 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -77,43 +76,20 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 		allLogs  []*types.Log
 		gp       = new(GasPool).AddGas(block.GasLimit())
 	)
-	fields := map[string]interface{}{
-		"number":     (*hexutil.Big)(block.Header().Number),
-		"hash":       block.Hash(),
-		"parentHash": block.Header().ParentHash,
-		"timestamp":  (*hexutil.Big)(block.Header().Time),
-		"miner":      block.Header().Coinbase,
-	}
 	// Mutate the the block and state according to any hard-fork specs
 	if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {
 		misc.ApplyDAOHardFork(statedb)
 	}
 	// Iterate over and process the individual transactions
-	results := make([]*txTraceResult, 0)
 	for i, tx := range block.Transactions() {
 		statedb.Prepare(tx.Hash(), block.Hash(), i)
-		receipt, _, res, err := ApplyTransactionForZipper(p.config, p.bc, nil, gp, statedb, header, tx, usedGas, cfg)
+		receipt, _, err := ApplyTransaction(p.config, p.bc, nil, gp, statedb, header, tx, usedGas, cfg)
 		if err != nil {
 			return nil, nil, 0, err
 		}
-		result := &txTraceResult{
-			Result:   res,
-			TxHash:   tx.Hash(),
-			GasPrice: (*hexutil.Big)(tx.GasPrice()),
-			Nonce:    hexutil.Uint64(tx.Nonce()),
-			Gas:      hexutil.Uint64(tx.Gas()),
-			GasUsed:  hexutil.Uint64(receipt.GasUsed),
-		}
-		results = append(results, result)
+
 		receipts = append(receipts, receipt)
 		allLogs = append(allLogs, receipt.Logs...)
-	}
-	fields["transactions"] = results
-	out, err := json.Marshal(fields)
-	if err != nil {
-		fmt.Println("Process json fail", block.Header().Number)
-	} else {
-		fmt.Println(string(out))
 	}
 	// Finalize the block, applying any consensus engine specific extras (e.g. block rewards)
 	p.engine.Finalize(p.bc, header, statedb, block.Transactions(), block.Uncles(), receipts)

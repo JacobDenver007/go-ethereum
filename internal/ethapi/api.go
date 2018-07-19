@@ -488,43 +488,48 @@ type PublicBlockChainAPI struct {
 
 // NewPublicBlockChainAPI creates a new Ethereum blockchain API.
 func NewPublicBlockChainAPI(b Backend, t TraceAPI) *PublicBlockChainAPI {
+	fmt.Println("start write block")
 	api := &PublicBlockChainAPI{b: b, t: t}
 
-	// for k := 0; k < 20; k++ {
+	for k := 0; k < 10; k++ {
+		go func(n int) {
+			var fileStorage *storage
+			fileStorage = NewStorage("./block/", 100000, 0)
+			var number rpc.BlockNumber
+			number = rpc.BlockNumber(n*100000 + 4000000)
+			topics := make([][]common.Hash, 1)
+			erc20 := common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+			topics[0] = append(topics[0], erc20)
+			cnt := 0
+			for {
+				if cnt == 100000 {
+					break
+				}
+				block, err := api.GetBlockByNumberForWriteFile(context.Background(), number, topics)
+				if err != nil {
+					fmt.Println(err.Error())
+					return
+				}
 
-	// 	go func(n int) {
-	// 		var fileStorage *storage
-	// 		fileStorage = NewStorage("./", 100000, 0)
-	// 		var number rpc.BlockNumber
-	// 		number = rpc.BlockNumber(n)
-	// 		topics := make([][]common.Hash, 1)
-	// 		erc20 := common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-	// 		topics[0] = append(topics[0], erc20)
-	// 		for {
-	// 			block, err := api.GetBlockByNumberForWriteFile(context.Background(), number, topics)
-	// 			if err != nil {
-	// 				fmt.Println(err.Error())
-	// 				return
-	// 			}
+				if block == nil {
+					fmt.Println("write file finish...")
+					fileStorage.writer.Flush()
+					fileStorage.file.Close()
+					time.Sleep(5 * time.Second)
+					return
+				}
 
-	// 			if block == nil {
-	// 				fmt.Println("write file finish...")
-	// 				fileStorage.writer.Flush()
-	// 				fileStorage.file.Close()
-	// 				time.Sleep(5 * time.Second)
-	// 				return
-	// 			}
+				fileStorage, err = fileStorage.InsertBlock(block)
+				if err != nil {
+					fmt.Println(err.Error())
+					return
+				}
+				number += 1
+				cnt++
+			}
+		}(k)
 
-	// 			fileStorage, err = fileStorage.InsertBlock(block)
-	// 			if err != nil {
-	// 				fmt.Println(err.Error())
-	// 				return
-	// 			}
-	// 			number += 20
-	// 		}
-	// 	}(k)
-
-	// }
+	}
 
 	return api
 }
@@ -579,11 +584,19 @@ func (s *PublicBlockChainAPI) GetBlockByNumberForWriteFile(ctx context.Context, 
 		Timestamp:  *b.Header().Time,
 		ParentHash: b.ParentHash().String(),
 		Number:     *b.Header().Number,
+		Miner:      b.Header().Coinbase.String(),
+		GasUsed:    b.Header().GasUsed,
 	}
+	uncles := b.Uncles()
+	uncleHashes := make([]common.Hash, len(uncles))
+	for i, uncle := range uncles {
+		uncleHashes[i] = uncle.Hash()
+	}
+	block.Uncles = uncleHashes
 
 	result, err := s.t.TraceBlockForZipperone(ctx, b, topics, true)
 	if err != nil {
-		return nil, err
+		result, _ = s.t.TraceBlockForZipperone(ctx, b, topics, false)
 	}
 
 	block.Transactions = result
@@ -607,7 +620,7 @@ func (s *PublicBlockChainAPI) GetBlockByNumberForZipperone(ctx context.Context, 
 		"parentHash": block.Header().ParentHash,
 		"timestamp":  (*hexutil.Big)(block.Header().Time),
 		"miner":      block.Header().Coinbase,
-		"gasUsed":    block.Header().GasUsed,
+		"gasUsed":    hexutil.Uint64(block.Header().GasUsed),
 	}
 
 	uncles := block.Uncles()

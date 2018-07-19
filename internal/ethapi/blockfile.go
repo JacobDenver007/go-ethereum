@@ -7,16 +7,20 @@ import (
 	"math/big"
 	"os"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Block represents an block info.
 type FileBlock struct {
-	Timestamp    big.Int     `json:"timestamp"`    // 交易时间
-	Number       big.Int     `json:"number"`       // 区块号
-	ParentHash   string      `json:"parent_hash"`  // 区块父哈希
-	Hash         string      `json:"hash"`         // 区块哈希
-	TxCnt        int         `json:"tx_cnt"`       //交易个数
-	Transactions interface{} `json:"transactions"` //交易列表
+	Timestamp    big.Int       `json:"timestamp"`  // 交易时间
+	Number       big.Int       `json:"number"`     // 区块号
+	ParentHash   string        `json:"parentHash"` // 区块父哈希
+	Hash         string        `json:"hash"`       // 区块哈希
+	Uncles       []common.Hash `json:"uncles"`
+	Miner        string        `json:"miner"`
+	GasUsed      uint64        `json:"gasUsed"`
+	Transactions interface{}   `json:"transactions"` //交易列表
 }
 
 type storage struct {
@@ -30,6 +34,7 @@ type storage struct {
 func NewStorage(path string, cnt, blocknumber int64) *storage {
 	s := new(storage)
 	s.cnt = cnt
+	s.path = "./block/"
 	s.fileName = s.getFileName(blocknumber)
 	f, err := os.OpenFile(s.fileName, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0660)
 	if err != nil {
@@ -85,5 +90,5 @@ func (s *storage) ReadFile() error {
 }
 
 func (s *storage) getFileName(blockNumber int64) string {
-	return s.path + fmt.Sprintf("eth_block_%04d_%04d.txt", blockNumber%20, blockNumber/s.cnt)
+	return s.path + fmt.Sprintf("eth_block_%05d.txt", blockNumber/100000)
 }

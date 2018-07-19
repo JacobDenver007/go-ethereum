@@ -481,7 +481,6 @@ func (api *PrivateDebugAPI) traceBlockForZipperone(ctx context.Context, block *t
 	if failed != nil {
 		return nil, failed
 	}
-	fmt.Println(results)
 	return results, nil
 }
 
