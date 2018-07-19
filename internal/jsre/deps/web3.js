@@ -5275,6 +5275,13 @@ var methods = function () {
         outputFormatter: formatters.outputBigNumberFormatter
     });
 
+    var getBatchBalance = new Method({
+        name: 'getBatchBalance',
+        call: 'eth_getBatchBalance',
+        params: 2,
+        inputFormatter: [formatters.inputAddressFormatter, function (val) { return !!val; }],
+    });
+
     var getStorageAt = new Method({
         name: 'getStorageAt',
         call: 'eth_getStorageAt',
@@ -5441,6 +5448,7 @@ var methods = function () {
 
     return [
         getBalance,
+        getBatchBalance,
         getStorageAt,
         getCode,
         getBlock,

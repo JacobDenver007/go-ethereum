@@ -491,45 +491,45 @@ func NewPublicBlockChainAPI(b Backend, t TraceAPI) *PublicBlockChainAPI {
 	fmt.Println("start write block")
 	api := &PublicBlockChainAPI{b: b, t: t}
 
-	for k := 0; k < 10; k++ {
-		go func(n int) {
-			var fileStorage *storage
-			fileStorage = NewStorage("./block/", 100000, 0)
-			var number rpc.BlockNumber
-			number = rpc.BlockNumber(n*100000 + 4000000)
-			topics := make([][]common.Hash, 1)
-			erc20 := common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-			topics[0] = append(topics[0], erc20)
-			cnt := 0
-			for {
-				if cnt == 100000 {
-					break
-				}
-				block, err := api.GetBlockByNumberForWriteFile(context.Background(), number, topics)
-				if err != nil {
-					fmt.Println(err.Error())
-					return
-				}
+	// for k := 0; k < 10; k++ {
+	// 	go func(n int) {
+	// 		var fileStorage *storage
+	// 		fileStorage = NewStorage("./block/", 100000, 0)
+	// 		var number rpc.BlockNumber
+	// 		number = rpc.BlockNumber(n*100000 + 4000000)
+	// 		topics := make([][]common.Hash, 1)
+	// 		erc20 := common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+	// 		topics[0] = append(topics[0], erc20)
+	// 		cnt := 0
+	// 		for {
+	// 			if cnt == 100000 {
+	// 				break
+	// 			}
+	// 			block, err := api.GetBlockByNumberForWriteFile(context.Background(), number, topics)
+	// 			if err != nil {
+	// 				fmt.Println(err.Error())
+	// 				return
+	// 			}
 
-				if block == nil {
-					fmt.Println("write file finish...")
-					fileStorage.writer.Flush()
-					fileStorage.file.Close()
-					time.Sleep(5 * time.Second)
-					return
-				}
+	// 			if block == nil {
+	// 				fmt.Println("write file finish...")
+	// 				fileStorage.writer.Flush()
+	// 				fileStorage.file.Close()
+	// 				time.Sleep(5 * time.Second)
+	// 				return
+	// 			}
 
-				fileStorage, err = fileStorage.InsertBlock(block)
-				if err != nil {
-					fmt.Println(err.Error())
-					return
-				}
-				number += 1
-				cnt++
-			}
-		}(k)
+	// 			fileStorage, err = fileStorage.InsertBlock(block)
+	// 			if err != nil {
+	// 				fmt.Println(err.Error())
+	// 				return
+	// 			}
+	// 			number += 1
+	// 			cnt++
+	// 		}
+	// 	}(k)
 
-	}
+	// }
 
 	return api
 }
@@ -550,6 +550,21 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 	}
 	b := state.GetBalance(address)
 	return b, state.Error()
+}
+
+//GetBatchBalance returns the amounts of wei for the given addresses
+func (s *PublicBlockChainAPI) GetBatchBalance(ctx context.Context, addresses []common.Address, blockNr rpc.BlockNumber) ([]*big.Int, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+
+	res := make([]*big.Int, 0)
+	for _, address := range addresses {
+		b := state.GetBalance(address)
+		res = append(res, b)
+	}
+	return res, state.Error()
 }
 
 // GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
