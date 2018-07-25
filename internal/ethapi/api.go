@@ -549,20 +549,21 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 		return nil, err
 	}
 	b := state.GetBalance(address)
+	fmt.Println(b)
 	return b, state.Error()
 }
 
 //GetBatchBalance returns the amounts of wei for the given addresses
-func (s *PublicBlockChainAPI) GetBatchBalance(ctx context.Context, addresses []common.Address, blockNr rpc.BlockNumber) ([]*big.Int, error) {
+func (s *PublicBlockChainAPI) GetBatchBalance(ctx context.Context, addresses []common.Address, blockNr rpc.BlockNumber) ([]*hexutil.Big, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
 
-	res := make([]*big.Int, 0)
+	res := make([]*hexutil.Big, 0)
 	for _, address := range addresses {
 		b := state.GetBalance(address)
-		res = append(res, b)
+		res = append(res, (*hexutil.Big)(b))
 	}
 	return res, state.Error()
 }

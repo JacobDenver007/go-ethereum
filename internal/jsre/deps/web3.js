@@ -5280,6 +5280,7 @@ var methods = function () {
         call: 'eth_getBatchBalance',
         params: 2,
         inputFormatter: [formatters.inputAddressFormatter, function (val) { return !!val; }],
+        outputFormatter: formatters.outputBigNumberFormatter
     });
 
     var getStorageAt = new Method({
