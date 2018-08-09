@@ -106,16 +106,16 @@ func NewPublicTxPoolAPI(b Backend) *PublicTxPoolAPI {
 }
 
 // Content returns the transactions contained within the transaction pool.
-func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string][]*RPCTransaction {
-	content := map[string]map[string]map[string][]*RPCTransaction{
-		"pending": make(map[string]map[string][]*RPCTransaction),
-		"queued":  make(map[string]map[string][]*RPCTransaction),
+func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string][]map[string]interface{} {
+	content := map[string]map[string]map[string][]map[string]interface{}{
+		"pending": make(map[string]map[string][]map[string]interface{}),
+		"queued":  make(map[string]map[string][]map[string]interface{}),
 	}
 	pending, queue := s.b.TxPoolContent()
 
 	// Flatten the pending transactions
 	for account, txs := range pending {
-		dump := make(map[string][]*RPCTransaction)
+		dump := make(map[string][]map[string]interface{})
 		for _, tx := range txs {
 			dump[fmt.Sprintf("%d", tx.Nonce())] = append(dump[fmt.Sprintf("%d", tx.Nonce())], newRPCPendingTransaction(tx))
 		}
@@ -123,7 +123,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string][]*RPCTrans
 	}
 	// Flatten the queued transactions
 	for account, txs := range queue {
-		dump := make(map[string][]*RPCTransaction)
+		dump := make(map[string][]map[string]interface{})
 		for _, tx := range txs {
 			dump[fmt.Sprintf("%d", tx.Nonce())] = append(dump[fmt.Sprintf("%d", tx.Nonce())], newRPCPendingTransaction(tx))
 		}
@@ -1040,9 +1040,31 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 	return result
 }
 
+func newRPCTransactionForZipperOne(tx *types.Transaction, blockHash common.Hash, blockNumber uint64, index uint64) map[string]interface{} {
+	var signer types.Signer = types.FrontierSigner{}
+	if tx.Protected() {
+		signer = types.NewEIP155Signer(tx.ChainId())
+	}
+	from, _ := types.Sender(signer, tx)
+
+	result := make(map[string]interface{}, 0)
+	result["from"] = from
+	result["to"] = tx.To()
+	result["hash"] = tx.Hash()
+	result["gas"] = hexutil.Uint64(tx.Gas())
+	result["gasPrice"] = (*hexutil.Big)(tx.GasPrice())
+	result["value"] = (*hexutil.Big)(tx.Value())
+	
+	return result
+}
+
 // newRPCPendingTransaction returns a pending transaction that will serialize to the RPC representation
 func newRPCPendingTransaction(tx *types.Transaction) *RPCTransaction {
 	return newRPCTransaction(tx, common.Hash{}, 0, 0)
+}
+
+func newRPCPendingTransactionForZipperone(tx *types.Transaction) map[string]interface{} {
+	return newRPCTransactionForZipperOne(tx, common.Hash{}, 0, 0)
 }
 
 // newRPCTransactionFromBlockIndex returns a transaction that will serialize to the RPC representation.
