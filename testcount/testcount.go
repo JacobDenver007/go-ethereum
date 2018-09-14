@@ -85,7 +85,7 @@ func Start() {
 }
 
 func OpenDB() {
-	SqlDB := &DB{}
+	SqlDB = &DB{}
 	SqlDB.Open()
 }
 
