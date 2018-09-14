@@ -139,7 +139,7 @@ func (db *DB) Open() error {
 }
 
 func (db *DB) InsertCountInfo(height int64) {
-	sqlStr := fmt.Sprintf(`"INSERT INTO t_countinfo(i_height, i_statedbReadCount, i_statedbReadAverage,i_statedbWriteCount,i_statedbWriteAverage,i_statedbDeleteCount,i_statedbDeleteAverage,i_leveldbGetCount,i_leveldbGetAverage,i_leveldbHasCount,i_leveldbHasAverage,i_leveldbWriteCount,i_leveldbWriteAverage,i_batchLeveldbPutCount,i_batchLeveldbPutTime,i_batchLeveldbWriteCount,i_batchLeveldbWriteTime) values(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)"`, height, StatedbReadCount, StatedbReadTime, StatedbWriteCount, StatedbWriteTime, StatedbDeleteCount, StatedbDeleteTime, LeveldbGetCount, LeveldbGetTime, LeveldbHasCount, LeveldbHasTime, LeveldbWriteCount, LeveldbWriteTime, BatchLeveldbPutCount, BatchLeveldbPutTime, BatchLeveldbWriteCount, BatchLeveldbWriteTime)
+	sqlStr := fmt.Sprintf(`"INSERT INTO t_countinfo(i_height, i_statedbReadCount, i_statedbReadAverage,i_statedbWriteCount,i_statedbWriteAverage,i_statedbDeleteCount,i_statedbDeleteAverage,i_leveldbGetCount,i_leveldbGetAverage,i_leveldbHasCount,i_leveldbHasAverage,i_leveldbWriteCount,i_leveldbWriteAverage,i_batchLeveldbPutCount,i_batchLeveldbPutTime,i_batchLeveldbWriteCount,i_batchLeveldbWriteTime) values(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d);"`, height, StatedbReadCount, StatedbReadTime, StatedbWriteCount, StatedbWriteTime, StatedbDeleteCount, StatedbDeleteTime, LeveldbGetCount, LeveldbGetTime, LeveldbHasCount, LeveldbHasTime, LeveldbWriteCount, LeveldbWriteTime, BatchLeveldbPutCount, BatchLeveldbPutTime, BatchLeveldbWriteCount, BatchLeveldbWriteTime)
 
 	db.execSQL(sqlStr)
 }
