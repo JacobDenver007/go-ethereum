@@ -39,6 +39,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/node"
+	"github.com/ethereum/go-ethereum/testcount"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -214,12 +215,13 @@ func init() {
 		utils.SetupNetwork(ctx)
 		return nil
 	}
-
+	testcount.OpenDB()
 	app.After = func(ctx *cli.Context) error {
 		debug.Exit()
 		console.Stdin.Close() // Resets terminal mode.
 		return nil
 	}
+
 }
 
 func main() {

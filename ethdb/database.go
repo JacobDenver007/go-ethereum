@@ -25,6 +25,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/testcount"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
@@ -100,15 +101,33 @@ func (db *LDBDatabase) Path() string {
 
 // Put puts the given key / value to the queue
 func (db *LDBDatabase) Put(key []byte, value []byte) error {
+	t := time.Now()
+	defer func() {
+		testcount.LeveldbWriteTime += time.Now().Sub(t)
+	}()
+	testcount.LeveldbWriteCount++
+
 	return db.db.Put(key, value, nil)
 }
 
 func (db *LDBDatabase) Has(key []byte) (bool, error) {
+	t := time.Now()
+	defer func() {
+		testcount.LeveldbHasTime += time.Now().Sub(t)
+	}()
+	testcount.LeveldbHasCount++
+
 	return db.db.Has(key, nil)
 }
 
 // Get returns the given key if it's present.
 func (db *LDBDatabase) Get(key []byte) ([]byte, error) {
+	t := time.Now()
+	defer func() {
+		testcount.LeveldbGetTime += time.Now().Sub(t)
+	}()
+	testcount.LeveldbGetCount++
+
 	dat, err := db.db.Get(key, nil)
 	if err != nil {
 		return nil, err
@@ -377,12 +396,24 @@ type ldbBatch struct {
 }
 
 func (b *ldbBatch) Put(key, value []byte) error {
+	t := time.Now()
+	defer func() {
+		testcount.BatchLeveldbPutTime += time.Now().Sub(t)
+	}()
+	testcount.BatchLeveldbPutCount++
+
 	b.b.Put(key, value)
 	b.size += len(value)
 	return nil
 }
 
 func (b *ldbBatch) Write() error {
+	t := time.Now()
+	defer func() {
+		testcount.BatchLeveldbWriteTime += time.Now().Sub(t)
+	}()
+	testcount.BatchLeveldbWriteCount++
+
 	return b.db.Write(b.b, nil)
 }
 

@@ -20,11 +20,13 @@ package trie
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/testcount"
 )
 
 var (
@@ -131,6 +133,11 @@ func (t *Trie) Get(key []byte) []byte {
 // The value bytes must not be modified by the caller.
 // If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryGet(key []byte) ([]byte, error) {
+	tNow := time.Now()
+	defer func() {
+		testcount.StatedbReadTime += time.Now().Sub(tNow)
+	}()
+
 	key = keybytesToHex(key)
 	value, newroot, didResolve, err := t.tryGet(t.root, key, 0)
 	if err == nil && didResolve {
@@ -198,6 +205,12 @@ func (t *Trie) Update(key, value []byte) {
 //
 // If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryUpdate(key, value []byte) error {
+	tNow := time.Now()
+	defer func() {
+		testcount.StatedbWriteTime += time.Now().Sub(tNow)
+	}()
+	testcount.StatedbWriteCount++
+
 	k := keybytesToHex(key)
 	if len(value) != 0 {
 		_, n, err := t.insert(t.root, nil, k, valueNode(value))
@@ -294,6 +307,12 @@ func (t *Trie) Delete(key []byte) {
 // TryDelete removes any existing value for key from the trie.
 // If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryDelete(key []byte) error {
+	tNow := time.Now()
+	defer func() {
+		testcount.StatedbDeleteTime += time.Now().Sub(tNow)
+	}()
+	testcount.StatedbDeleteCount++
+
 	k := keybytesToHex(key)
 	_, n, err := t.delete(t.root, nil, k)
 	if err != nil {

@@ -117,7 +117,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string][]map[strin
 	for account, txs := range pending {
 		dump := make(map[string][]map[string]interface{})
 		for _, tx := range txs {
-			dump[fmt.Sprintf("%d", tx.Nonce())] = append(dump[fmt.Sprintf("%d", tx.Nonce())], newRPCPendingTransaction(tx))
+			dump[fmt.Sprintf("%d", tx.Nonce())] = append(dump[fmt.Sprintf("%d", tx.Nonce())], newRPCPendingTransactionForZipperone(tx))
 		}
 		content["pending"][account.Hex()] = dump
 	}
@@ -125,7 +125,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string][]map[strin
 	for account, txs := range queue {
 		dump := make(map[string][]map[string]interface{})
 		for _, tx := range txs {
-			dump[fmt.Sprintf("%d", tx.Nonce())] = append(dump[fmt.Sprintf("%d", tx.Nonce())], newRPCPendingTransaction(tx))
+			dump[fmt.Sprintf("%d", tx.Nonce())] = append(dump[fmt.Sprintf("%d", tx.Nonce())], newRPCPendingTransactionForZipperone(tx))
 		}
 		content["queued"][account.Hex()] = dump
 	}
@@ -1054,7 +1054,7 @@ func newRPCTransactionForZipperOne(tx *types.Transaction, blockHash common.Hash,
 	result["gas"] = hexutil.Uint64(tx.Gas())
 	result["gasPrice"] = (*hexutil.Big)(tx.GasPrice())
 	result["value"] = (*hexutil.Big)(tx.Value())
-	
+
 	return result
 }
 
