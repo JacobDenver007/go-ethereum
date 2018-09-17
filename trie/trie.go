@@ -137,7 +137,7 @@ func (t *Trie) TryGet(key []byte) ([]byte, error) {
 	defer func() {
 		testcount.StatedbReadTime += time.Now().Sub(tNow)
 	}()
-
+	testcount.StatedbReadCount++
 	key = keybytesToHex(key)
 	value, newroot, didResolve, err := t.tryGet(t.root, key, 0)
 	if err == nil && didResolve {
