@@ -22,6 +22,12 @@ var (
 	BatchLeveldbPutCount   int64
 	BatchLeveldbWriteCount int64
 
+	StatedbWriteByteLength int64
+
+	LeveldbWriteByteLength int64
+
+	BatchLeveldbWriteByteLength int64
+
 	StatedbReadTime   time.Duration
 	StatedbWriteTime  time.Duration
 	StatedbDeleteTime time.Duration
@@ -43,19 +49,22 @@ CREATE TABLE IF NOT EXISTS t_countinfo (
 	i_statedbReadCount              INTEGER(11),
 	i_statedbReadAverage           INTEGER(11),
 	i_statedbWriteCount INTEGER(11),
-	i_statedbWriteAverage INTEGER(11),
+	i_statedbWriteTime INTEGER(11),
+	i_statedbWriteByte INTEGER(11),
 	i_statedbDeleteCount INTEGER(11),
-	i_statedbDeleteAverage INTEGER(11),
+	i_statedbDeleteTime INTEGER(11),
 	i_leveldbGetCount INTEGER(11),
-	i_leveldbGetAverage INTEGER(11),
+	i_leveldbGetTime INTEGER(11),
 	i_leveldbHasCount INTEGER(11),
-	i_leveldbHasAverage INTEGER(11),
+	i_leveldbHasTime INTEGER(11),
 	i_leveldbWriteCount INTEGER(11),
-	i_leveldbWriteAverage INTEGER(11),
+	i_leveldbWriteTime INTEGER(11),
+	i_leveldbWriteByte INTEGER(11),
 	i_batchLeveldbPutCount INTEGER(11),
 	i_batchLeveldbPutTime INTEGER(11),
 	i_batchLeveldbWriteCount INTEGER(11),
-	i_batchLeveldbWriteTime INTEGER(11)
+	i_batchLeveldbWriteTime INTEGER(11),
+	i_batchLeveldbWriteByte INTEGER(11)
 );
 `
 
@@ -70,6 +79,10 @@ func Start() {
 
 	BatchLeveldbPutCount = 0
 	BatchLeveldbWriteCount = 0
+
+	StatedbWriteByteLength = 0
+	LeveldbWriteByteLength = 0
+	BatchLeveldbWriteByteLength = 0
 
 	StatedbReadTime = 0
 	StatedbWriteTime = 0
@@ -139,7 +152,7 @@ func (db *DB) Open() error {
 }
 
 func (db *DB) InsertCountInfo(height int64) {
-	sqlStr := fmt.Sprintf("INSERT INTO t_countinfo(i_height, i_statedbReadCount, i_statedbReadAverage,i_statedbWriteCount,i_statedbWriteAverage,i_statedbDeleteCount,i_statedbDeleteAverage,i_leveldbGetCount,i_leveldbGetAverage,i_leveldbHasCount,i_leveldbHasAverage,i_leveldbWriteCount,i_leveldbWriteAverage,i_batchLeveldbPutCount,i_batchLeveldbPutTime,i_batchLeveldbWriteCount,i_batchLeveldbWriteTime) values(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d);", height, StatedbReadCount, StatedbReadTime, StatedbWriteCount, StatedbWriteTime, StatedbDeleteCount, StatedbDeleteTime, LeveldbGetCount, LeveldbGetTime, LeveldbHasCount, LeveldbHasTime, LeveldbWriteCount, LeveldbWriteTime, BatchLeveldbPutCount, BatchLeveldbPutTime, BatchLeveldbWriteCount, BatchLeveldbWriteTime)
+	sqlStr := fmt.Sprintf("INSERT INTO t_countinfo(i_height, i_statedbReadCount, i_statedbReadTime,i_statedbWriteCount,i_statedbWriteTime,i_statedbWriteByte,i_statedbDeleteCount,i_statedbDeleteTime,i_leveldbGetCount,i_leveldbGetTime,i_leveldbHasCount,i_leveldbHasTime,i_leveldbWriteCount,i_leveldbWriteTime,i_leveldbWriteByte,i_batchLeveldbPutCount,i_batchLeveldbPutTime,i_batchLeveldbWriteCount,i_batchLeveldbWriteTime,i_batchLeveldbWriteByte) values(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d);", height, StatedbReadCount, StatedbReadTime, StatedbWriteCount, StatedbWriteTime, StatedbWriteByteLength, StatedbDeleteCount, StatedbDeleteTime, LeveldbGetCount, LeveldbGetTime, LeveldbHasCount, LeveldbHasTime, LeveldbWriteCount, LeveldbWriteTime, LeveldbWriteByteLength, BatchLeveldbPutCount, BatchLeveldbPutTime, BatchLeveldbWriteCount, BatchLeveldbWriteTime, BatchLeveldbWriteByteLength)
 
 	db.execSQL(sqlStr)
 }

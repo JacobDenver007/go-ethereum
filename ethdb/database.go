@@ -106,6 +106,7 @@ func (db *LDBDatabase) Put(key []byte, value []byte) error {
 		testcount.LeveldbWriteTime += time.Now().Sub(t)
 	}()
 	testcount.LeveldbWriteCount++
+	testcount.LeveldbWriteByteLength += int64(len(value))
 
 	return db.db.Put(key, value, nil)
 }
@@ -401,6 +402,7 @@ func (b *ldbBatch) Put(key, value []byte) error {
 		testcount.BatchLeveldbPutTime += time.Now().Sub(t)
 	}()
 	testcount.BatchLeveldbPutCount++
+	testcount.BatchLeveldbWriteByteLength += int64(len(value))
 
 	b.b.Put(key, value)
 	b.size += len(value)

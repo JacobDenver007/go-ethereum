@@ -138,6 +138,7 @@ func (t *Trie) TryGet(key []byte) ([]byte, error) {
 		testcount.StatedbReadTime += time.Now().Sub(tNow)
 	}()
 	testcount.StatedbReadCount++
+
 	key = keybytesToHex(key)
 	value, newroot, didResolve, err := t.tryGet(t.root, key, 0)
 	if err == nil && didResolve {
@@ -210,6 +211,7 @@ func (t *Trie) TryUpdate(key, value []byte) error {
 		testcount.StatedbWriteTime += time.Now().Sub(tNow)
 	}()
 	testcount.StatedbWriteCount++
+	testcount.StatedbWriteByteLength += int64(len(value))
 
 	k := keybytesToHex(key)
 	if len(value) != 0 {
